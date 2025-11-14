@@ -13,15 +13,15 @@ import BarGraph from "../../components/BarGraph";
 import OrderSummaryChart from "../../components/OrderSummaryChart ";
 import { useParams } from "react-router-dom";
 import { storage } from "../../appwrite.config";
-import sales from "../../assets/dashboard/sales.png";
-import revenue from "../../assets/dashboard/revenue.png";
-import profit from "../../assets/dashboard/profit.png";
-import cost from "../../assets/dashboard/cost.png";
-import purchase from "../../assets/dashboard/purchase.png";
-import quantity from "../../assets/dashboard/quantity.png";
-import onway from "../../assets/dashboard/onway.png";
-import suppliers from "../../assets/dashboard/suppliers.png";
-import categories from "../../assets/dashboard/categories.png";
+import sales from "../../assets/dashboard/Sales.png";
+import revenue from "../../assets/dashboard/Revenue.png";
+import profit from "../../assets/dashboard/Profit.png";
+import cost from "../../assets/dashboard/Cost.png";
+import purchase from "../../assets/dashboard/Purchase.png";
+import quantity from "../../assets/dashboard/Quantity.png";
+import onway from "../../assets/dashboard/Onway.png";
+import suppliers from "../../assets/dashboard/Suppliers.png";
+import categories from "../../assets/dashboard/Categories.png";
 
 const Dashboard = () => {
   const [salesOverview, setsalesOverview] = useState(null);
