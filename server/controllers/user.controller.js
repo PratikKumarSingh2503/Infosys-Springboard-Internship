@@ -34,7 +34,15 @@ const login = async (req, res) => {
         if (loginValidation(email, password)) {
 
             const token = await User.matchPasswordAndGenerateToken(email, password);
-            res.cookie('token', token);
+            // Configure cookie for cross-origin requests (frontend on Vercel, backend on Render)
+            const isProduction = process.env.NODE_ENV === 'production';
+            res.cookie('token', token, {
+                httpOnly: true, // Prevents JavaScript access (security)
+                secure: isProduction, // Only send over HTTPS in production
+                sameSite: isProduction ? 'none' : 'lax', // Required for cross-origin in production
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                path: '/', // Available for all paths
+            });
             const user = await User.findOne({ email }).select("-password -salt");
             return res.status(200).json({ success: true, user: user });
         } else {
@@ -114,7 +122,15 @@ const editProfile = async (req, res) => {
 
         const user = await User.findByIdAndUpdate(_id, { ...req.body }, { new: true });
         const token = createUserToken(user);
-        res.cookie('token', token);
+        // Configure cookie for cross-origin requests (same settings as login)
+        const isProduction = process.env.NODE_ENV === 'production';
+        res.cookie('token', token, {
+            httpOnly: true, // Prevents JavaScript access (security)
+            secure: isProduction, // Only send over HTTPS in production
+            sameSite: isProduction ? 'none' : 'lax', // Required for cross-origin in production
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            path: '/', // Available for all paths
+        });
         return res.status(200).json({ success: true, message: "user updated", token: token });
     } catch (error) {
         return res.status(500).json({ error: "Internal server error" });

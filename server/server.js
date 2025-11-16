@@ -9,9 +9,31 @@ const cron = require('node-cron');
 
 const app = express();
 
+// Configure CORS to accept multiple origins for production and development
+const allowedOrigins = [
+    'http://localhost:5173', // Local development
+    'https://infosys-springboard-internship-7hn9.vercel.app', // Production Vercel URL
+    process.env.CLIENT_URL // Additional URL from env variable
+].filter(Boolean); // Remove any undefined values
+
 app.use(cors({
-    origin: process.env.CLIENT_URL,
-    credentials: true
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        // Check if origin is in the allowed list
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            // Allow any Vercel deployment (preview deployments use different URLs)
+            if (origin.includes('vercel.app')) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        }
+    },
+    credentials: true // Required for cookies to be sent cross-origin
 }));
 
 connectDB(process.env.DB_CONN_STRING);
@@ -56,7 +78,11 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(mongoSanitizer());
 app.use(xss());
-app.use(helmet());
+// Configure Helmet to allow credentials (cookies) for cross-origin requests
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginEmbedderPolicy: false
+}));
 
 app.get('/', (req, res) => {
     return res.send('welcome');
