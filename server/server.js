@@ -9,30 +9,8 @@ const cron = require('node-cron');
 
 const app = express();
 
-// Configure CORS to accept multiple origins
-const allowedOrigins = [
-    'http://localhost:5173', // Local development
-    'https://infosys-springboard-internship-7hn9.vercel.app', // Production Vercel URL
-    process.env.CLIENT_URL // Fallback to env variable
-].filter(Boolean); // Remove any undefined values
-
 app.use(cors({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        
-        // Check if origin is in the allowed list
-        if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            // Allow any Vercel preview deployment (optional - remove if you want strict control)
-            if (origin.includes('vercel.app')) {
-                callback(null, true);
-            } else {
-                callback(new Error('Not allowed by CORS'));
-            }
-        }
-    },
+    origin: process.env.CLIENT_URL,
     credentials: true
 }));
 
