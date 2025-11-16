@@ -35,11 +35,15 @@ const login = async (req, res) => {
 
             const token = await User.matchPasswordAndGenerateToken(email, password);
             // Configure cookie for cross-origin requests (frontend on Vercel, backend on Render)
-            const isProduction = process.env.NODE_ENV === 'production';
+            // Check if request is HTTPS or if CLIENT_URL is HTTPS (production)
+            const isHttps = req.secure || req.protocol === 'https' || req.get('x-forwarded-proto') === 'https';
+            const isProduction = isHttps || (process.env.CLIENT_URL && process.env.CLIENT_URL.startsWith('https'));
+            // For cross-origin cookies (frontend on different domain), we need sameSite: 'none' and secure: true
+            const isCrossOrigin = isProduction; // If production, it's cross-origin (Vercel -> Render)
             res.cookie('token', token, {
                 httpOnly: true, // Prevents JavaScript access (security)
-                secure: isProduction, // Only send over HTTPS in production
-                sameSite: isProduction ? 'none' : 'lax', // Required for cross-origin in production
+                secure: isCrossOrigin, // Required for sameSite: 'none' (cross-origin cookies)
+                sameSite: isCrossOrigin ? 'none' : 'lax', // 'none' required for cross-origin
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
                 path: '/', // Available for all paths
             });
@@ -123,11 +127,13 @@ const editProfile = async (req, res) => {
         const user = await User.findByIdAndUpdate(_id, { ...req.body }, { new: true });
         const token = createUserToken(user);
         // Configure cookie for cross-origin requests (same settings as login)
-        const isProduction = process.env.NODE_ENV === 'production';
+        const isHttps = req.secure || req.protocol === 'https' || req.get('x-forwarded-proto') === 'https';
+        const isProduction = isHttps || (process.env.CLIENT_URL && process.env.CLIENT_URL.startsWith('https'));
+        const isCrossOrigin = isProduction; // If production, it's cross-origin (Vercel -> Render)
         res.cookie('token', token, {
             httpOnly: true, // Prevents JavaScript access (security)
-            secure: isProduction, // Only send over HTTPS in production
-            sameSite: isProduction ? 'none' : 'lax', // Required for cross-origin in production
+            secure: isCrossOrigin, // Required for sameSite: 'none' (cross-origin cookies)
+            sameSite: isCrossOrigin ? 'none' : 'lax', // 'none' required for cross-origin
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             path: '/', // Available for all paths
         });

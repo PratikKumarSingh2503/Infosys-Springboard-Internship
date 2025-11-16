@@ -9,6 +9,9 @@ const cron = require('node-cron');
 
 const app = express();
 
+// Trust proxy for proper HTTPS detection behind Render's reverse proxy
+app.set('trust proxy', 1);
+
 // Configure CORS to accept multiple origins for production and development
 const allowedOrigins = [
     'http://localhost:5173', // Local development
