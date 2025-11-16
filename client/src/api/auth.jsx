@@ -1,9 +1,15 @@
 import axios from "axios";
 
+const cleanURL = import.meta.env.VITE_SERVER_URL?.replace(/\/+$/, "");
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_SERVER_URL ? `${import.meta.env.VITE_SERVER_URL}/api` : "http://localhost:5000/api",
+  baseURL: cleanURL ? `${cleanURL}/api` : "http://localhost:5000/api",
   withCredentials: true,
-});
+}); 
+// const API = axios.create({
+//   baseURL: import.meta.env.VITE_SERVER_URL ? `${import.meta.env.VITE_SERVER_URL}/api` : "http://localhost:5000/api",
+//   withCredentials: true,
+// });
 
 // Authentication
 export const register = (userData) => API.post("/users/register", userData);
