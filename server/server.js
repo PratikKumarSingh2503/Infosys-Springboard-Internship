@@ -9,9 +9,21 @@ const cron = require('node-cron');
 
 const app = express();
 
+// Allow multiple origins (comma-separated CLIENT_URL, e.g. "http://localhost:5173,https://your-app.vercel.app")
+const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
 app.use(cors({
-    origin: process.env.CLIENT_URL,
-    credentials: true
+    origin(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, origin || allowedOrigins[0]);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    credentials: true,
 }));
 
 connectDB(process.env.DB_CONN_STRING);
