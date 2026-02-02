@@ -4,15 +4,19 @@ const { registrationValidation, loginValidation } = require('../utils/validation
 const { randomBytes, createHmac } = require('crypto');
 const nodemailer = require("nodemailer");
 
-// Cookie options: SameSite=None + Secure required for cross-origin (e.g. Vercel frontend → separate API)
-const getCookieOptions = () => ({
-    httpOnly: true,
-    path: '/',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    ...(process.env.NODE_ENV === 'production' || process.env.SECURE_COOKIE === 'true'
-        ? { sameSite: 'none', secure: true }
-        : { sameSite: 'lax', secure: false }),
-});
+// Cookie options: SameSite=None + Secure required for cross-origin (Vercel frontend → separate API)
+// Use cross-origin options when CLIENT_URL is https (production) so cookie is sent from Vercel
+const getCookieOptions = () => {
+    const isProduction = process.env.NODE_ENV === 'production' ||
+        process.env.SECURE_COOKIE === 'true' ||
+        (process.env.CLIENT_URL && process.env.CLIENT_URL.includes('https'));
+    return {
+        httpOnly: true,
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        ...(isProduction ? { sameSite: 'none', secure: true } : { sameSite: 'lax', secure: false }),
+    };
+};
 
 const register = async (req, res) => {
     const { fullname, email, password, phoneNumber, address } = req.body;
@@ -45,7 +49,8 @@ const login = async (req, res) => {
             const token = await User.matchPasswordAndGenerateToken(email, password);
             res.cookie('token', token, getCookieOptions());
             const user = await User.findOne({ email }).select("-password -salt");
-            return res.status(200).json({ success: true, user: user });
+            // Return token in body too so client can send it in Authorization header (works when cookie is blocked cross-origin)
+            return res.status(200).json({ success: true, user, token });
         } else {
             throw new Error('Invalid inputs');
         }

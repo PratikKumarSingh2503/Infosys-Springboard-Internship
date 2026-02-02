@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import lap from "../../assets/macbook.webp";
-import axios from "axios";
 import Cookies from "js-cookie";
 import Navbar from "../../components/Navbar";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { getUser, editProfile } from "../../api/auth";
 
 const Profile = () => {
   const [user, setUser] = useState();
@@ -17,10 +17,7 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_SERVER_URL}/api/users/getUser`, {
-        withCredentials: true,
-      })
+    getUser()
       .then(({ data }) => {
         setUser(data);
         setU(data);
@@ -29,12 +26,12 @@ const Profile = () => {
   }, []);
 
   const handleSubmit = () => {
-    axios
-      .patch(`${import.meta.env.VITE_SERVER_URL}/api/users/editProfile`, u, {
-        withCredentials: true,
-      })
+    editProfile(u)
       .then(({ data }) => {
-        Cookies.set("token", data.token);
+        if (data.token) {
+          Cookies.set("token", data.token);
+          sessionStorage.setItem("authToken", data.token);
+        }
         setIsEditing(false); // Disable editing after saving
         toast.success("Profile updated successfully!");
       })

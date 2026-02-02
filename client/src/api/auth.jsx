@@ -4,6 +4,14 @@ const API_BASE = import.meta.env.VITE_SERVER_URL
   ? `${import.meta.env.VITE_SERVER_URL.replace(/\/$/, "")}/api`
   : "http://localhost:5000/api";
 
+// Add token to ALL axios requests (Dashboard, Cart, etc. use axios directly) so auth works cross-origin
+axios.interceptors.request.use((config) => {
+  const token =
+    typeof window !== "undefined" && window.sessionStorage?.getItem("authToken");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 const API = axios.create({
   baseURL: API_BASE,
   withCredentials: true,

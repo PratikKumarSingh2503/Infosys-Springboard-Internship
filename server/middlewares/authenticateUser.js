@@ -5,9 +5,11 @@ require("dotenv").config();
 
 const authenticateUser = async (req, res, next) => {
     try {
-
-
-        const token = req.cookies.token; // Get token from cookies
+        // Accept token from cookie (same-origin) OR Authorization header (cross-origin e.g. Vercel → API)
+        const cookieToken = req.cookies?.token;
+        const authHeader = req.headers.authorization;
+        const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+        const token = cookieToken || bearerToken;
 
         if (!token) {
             return res.status(401).json({ message: "Access denied. No token provided." });
