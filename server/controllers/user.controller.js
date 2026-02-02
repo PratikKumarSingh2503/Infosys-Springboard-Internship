@@ -4,6 +4,16 @@ const { registrationValidation, loginValidation } = require('../utils/validation
 const { randomBytes, createHmac } = require('crypto');
 const nodemailer = require("nodemailer");
 
+// Cookie options: SameSite=None + Secure required for cross-origin (e.g. Vercel frontend → separate API)
+const getCookieOptions = () => ({
+    httpOnly: true,
+    path: '/',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    ...(process.env.NODE_ENV === 'production' || process.env.SECURE_COOKIE === 'true'
+        ? { sameSite: 'none', secure: true }
+        : { sameSite: 'lax', secure: false }),
+});
+
 const register = async (req, res) => {
     const { fullname, email, password, phoneNumber, address } = req.body;
     try {
@@ -33,7 +43,7 @@ const login = async (req, res) => {
         if (loginValidation(email, password)) {
 
             const token = await User.matchPasswordAndGenerateToken(email, password);
-            res.cookie('token', token);
+            res.cookie('token', token, getCookieOptions());
             const user = await User.findOne({ email }).select("-password -salt");
             return res.status(200).json({ success: true, user: user });
         } else {
@@ -113,7 +123,7 @@ const editProfile = async (req, res) => {
 
         const user = await User.findByIdAndUpdate(_id, { ...req.body }, { new: true });
         const token = createUserToken(user);
-        res.cookie('token', token);
+        res.cookie('token', token, getCookieOptions());
         return res.status(200).json({ success: true, message: "user updated", token: token });
     } catch (error) {
         return res.status(500).json({ error: "Internal server error" });
