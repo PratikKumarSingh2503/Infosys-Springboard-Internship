@@ -13,7 +13,7 @@ const getCookieOptions = () => {
     return {
         httpOnly: true,
         path: '/',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours (match JWT expiry)
         ...(isProduction ? { sameSite: 'none', secure: true } : { sameSite: 'lax', secure: false }),
     };
 };

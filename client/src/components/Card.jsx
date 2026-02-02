@@ -24,16 +24,27 @@ export const Card = ({ product }) => {
     navigate(`/product/${_id}`);
   };
 
+  const imagePlaceholder = (
+    <div className="object-contain h-48 mb-2 bg-gray-200 p-5 flex items-center justify-center text-gray-500 text-sm">
+      No image
+    </div>
+  );
+
   return (
     <div
       className="rounded w-60 h-70 mt-4 flex flex-col cursor-pointer hover:shadow-sm"
       onClick={handleClick}
     >
-      <img
-        src={image}
-        className="object-contain h-48 mb-2 bg-gray-100 p-5"
-        alt={name}
-      />
+      {image ? (
+        <img
+          src={image}
+          className="object-contain h-48 mb-2 bg-gray-100 p-5"
+          alt={name}
+          onError={() => setImage(null)}
+        />
+      ) : (
+        imagePlaceholder
+      )}
       <div className="flex flex-col flex-grow gap-1 px-5">
         <p className="font-semibold capitalize truncate">{name}</p>
         <p className="text-green-500 font-semibold">₹{sellingPrice}</p>

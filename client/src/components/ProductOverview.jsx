@@ -56,10 +56,25 @@ const ProductOverview = () => {
 
   if (!product) return <p>Loading...</p>;
 
+  const imagePlaceholder = (
+    <div className="w-1/2 flex justify-center items-center h-96 bg-gray-200 text-gray-500">
+      No image
+    </div>
+  );
+
   return (
     <div className="flex gap-10 mx-20 my-10">
       <div className="w-1/2 flex justify-center items-center">
-        <img src={image} alt={product.name} className="h-96" />
+        {image ? (
+          <img
+            src={image}
+            alt={product.name}
+            className="h-96 object-contain"
+            onError={() => setImage(null)}
+          />
+        ) : (
+          imagePlaceholder
+        )}
       </div>
 
       <div className="w-1/2">

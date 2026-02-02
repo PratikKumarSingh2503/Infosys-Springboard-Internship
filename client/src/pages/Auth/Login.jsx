@@ -39,7 +39,10 @@ const Login = () => {
         toast.success("Login successful! Redirecting...");
         const { user, token } = response.data;
         localStorage.setItem("user", JSON.stringify(user));
-        if (token) sessionStorage.setItem("authToken", token);
+        if (token) {
+          sessionStorage.setItem("authToken", token);
+          localStorage.setItem("authToken", token); // persist so refresh/new tab keep auth
+        }
         setUser(user);
         setTimeout(() => {
           if (user.admin) {

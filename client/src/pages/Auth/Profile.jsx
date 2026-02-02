@@ -15,14 +15,23 @@ const Profile = () => {
     address: "",
   });
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
+    setLoading(true);
+    setLoadError(null);
     getUser()
       .then(({ data }) => {
         setUser(data);
-        setU(data);
+        setU(data || { fullname: "", email: "", phoneNumber: "", address: "" });
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.error(err);
+        setLoadError(err.response?.status === 401 ? "Please log in again." : "Failed to load profile.");
+        setU({ fullname: "", email: "", phoneNumber: "", address: "" });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const handleSubmit = () => {
@@ -37,6 +46,28 @@ const Profile = () => {
       })
       .catch((err) => console.log(err));
   };
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="h-[calc(100vh-90px)] flex items-center justify-center bg-gray-100">
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
+      </>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <>
+        <Navbar />
+        <div className="h-[calc(100vh-90px)] flex items-center justify-center bg-gray-100">
+          <p className="text-red-600">{loadError}</p>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

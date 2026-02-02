@@ -4,18 +4,60 @@ const API_BASE = import.meta.env.VITE_SERVER_URL
   ? `${import.meta.env.VITE_SERVER_URL.replace(/\/$/, "")}/api`
   : "http://localhost:5000/api";
 
+// Restore token from localStorage to sessionStorage on load (so refresh/new tab still have auth)
+if (typeof window !== "undefined" && !window.sessionStorage?.getItem("authToken")) {
+  const stored = window.localStorage?.getItem("authToken");
+  if (stored) window.sessionStorage?.setItem("authToken", stored);
+}
+
 // Add token to ALL axios requests (Dashboard, Cart, etc. use axios directly) so auth works cross-origin
 axios.interceptors.request.use((config) => {
   const token =
-    typeof window !== "undefined" && window.sessionStorage?.getItem("authToken");
+    typeof window !== "undefined" &&
+    (window.sessionStorage?.getItem("authToken") || window.localStorage?.getItem("authToken"));
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+// On 401 (token expired after 24h or invalid), clear auth and redirect to login
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && typeof window !== "undefined") {
+      window.localStorage?.removeItem("user");
+      window.localStorage?.removeItem("authToken");
+      window.sessionStorage?.removeItem("authToken");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
 
 const API = axios.create({
   baseURL: API_BASE,
   withCredentials: true,
 });
+
+// Same interceptors on API instance (login, getUser, editProfile use API)
+API.interceptors.request.use((config) => {
+  const token =
+    typeof window !== "undefined" &&
+    (window.sessionStorage?.getItem("authToken") || window.localStorage?.getItem("authToken"));
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && typeof window !== "undefined") {
+      window.localStorage?.removeItem("user");
+      window.localStorage?.removeItem("authToken");
+      window.sessionStorage?.removeItem("authToken");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Authentication
 export const register = (userData) => API.post("/users/register", userData);
