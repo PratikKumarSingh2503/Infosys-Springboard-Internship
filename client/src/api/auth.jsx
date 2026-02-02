@@ -19,45 +19,10 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
-// On 401 (token expired after 24h or invalid), clear auth and redirect to login
-axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401 && typeof window !== "undefined") {
-      window.localStorage?.removeItem("user");
-      window.localStorage?.removeItem("authToken");
-      window.sessionStorage?.removeItem("authToken");
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
-  }
-);
-
 const API = axios.create({
   baseURL: API_BASE,
   withCredentials: true,
 });
-
-// Same interceptors on API instance (login, getUser, editProfile use API)
-API.interceptors.request.use((config) => {
-  const token =
-    typeof window !== "undefined" &&
-    (window.sessionStorage?.getItem("authToken") || window.localStorage?.getItem("authToken"));
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-API.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401 && typeof window !== "undefined") {
-      window.localStorage?.removeItem("user");
-      window.localStorage?.removeItem("authToken");
-      window.sessionStorage?.removeItem("authToken");
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
-  }
-);
 
 // Authentication
 export const register = (userData) => API.post("/users/register", userData);

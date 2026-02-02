@@ -15,7 +15,7 @@ function createUserToken(user) {
         admin: user.admin
     };
 
-    const token = jwt.sign(payload, secret, { expiresIn: '24h' });
+    const token = jwt.sign(payload, secret);
     return token;
 }
 
